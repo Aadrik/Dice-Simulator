@@ -1,0 +1,63 @@
+function rollDice(dieSize) {
+  return Math.floor(Math.random() * dieSize) + 1;
+}
+
+function explodingDie(dieSize) {
+  const roll = rollDice(dieSize);
+  return roll === dieSize ? roll + explodingDie(dieSize) : roll;
+}
+
+function averageRoll(arr) {
+  let sum = arr.reduce((acc, curr) => acc + curr, 0);
+  return sum / arr.length;
+}
+
+function countGTE(arr, threshold) {
+  return arr.filter((x) => x >= threshold).length;
+}
+
+function rollAmount(rolls, dieSize) {
+  return Array.from({ length: rolls }, () => explodingDie(dieSize));
+}
+
+function convertDieString(dieThrow) {
+  let parts = dieThrow.split("D");
+  return parts.map(Number);
+}
+
+function sumColumns(arrOfArrays) {
+  if (arrOfArrays.length === 0) return [];
+  const numCols = arrOfArrays[0].length;
+
+  return Array.from({ length: numCols }, (_, colIndex) =>
+    arrOfArrays.reduce((sum, row) => sum + row[colIndex], 0)
+  );
+}
+
+function multiDieRoll(rollsPerSet, dieSize, numSets) {
+  let multiRolls = Array.from({ length: numSets }, () =>
+    rollAmount(rollsPerSet, dieSize)
+  );
+  return sumColumns(multiRolls);
+}
+
+function multiDieStats(dieThrow, numRolls = 100) {
+  let [dieAmount, dieSize] = convertDieString(dieThrow);
+  let rolls = multiDieRoll(numRolls, dieSize, dieAmount);
+  return {
+    rolls: rolls,
+    average: Number(averageRoll(rolls).toFixed(2)),
+    gteFour: countGTE(rolls, 4),
+    print() {
+      console.log(
+        `--${dieAmount}D${dieSize}-- \n Avg: ${
+          this.average
+        }\n Success: ${Number((this.gteFour / numRolls) * 100).toFixed(2)}%`
+      );
+    }
+  };
+}
+
+["1D4", "2D4", "3D4", "1D6", "2D6", "3D6", "1D8", "2D8", "3D8"]
+  .map((dieThrow) => multiDieStats(dieThrow, 100000))
+  .forEach((die) => die.print());
